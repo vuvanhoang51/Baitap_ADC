@@ -1,0 +1,71 @@
+#define F_CPU 8000000UL
+#include <avr/io.h>
+#include <util/delay.h>
+#include <string.h>
+#include <stdio.h>
+unsigned char number[10]={0xC0, 0xF9, 0xA4, 0xB0, 0x99, 0x92, 0x82, 0xF8, 0x80, 0x90};
+unsigned char k[2]={0x1C, 0xC6};
+// ADC
+void ADC_Init() 
+{
+	DDRA &= ~(1<<0);
+	ADCSRA |= (1<<ADEN) | (1<<ADPS0) | (1<<ADPS1) | (1<<ADPS2);
+	ADMUX  |=(1<<REFS0);
+}
+
+int ADC_Read(char channel)
+{
+	ADMUX =(0x40) |(channel & 0x07);
+	ADCSRA |= (1<<ADSC);
+	while(!(ADCSRA & (1<<ADIF)));
+	
+	ADCSRA = (1<<ADIF);
+	_delay_ms(1);
+	return ADCW;
+}
+ void show(unsigned int  x)
+ {
+	 unsigned int temp;
+	 unsigned char a,b;
+	 temp=x;
+	 b=temp % 10;
+	 a=temp/10;
+	 
+	 
+	 PORTD=(0<<0);
+	 PORTD =(1<<0);
+	 PORTC=number[a];
+	 _delay_ms(5);
+
+		
+		PORTD=(0<<1) ;
+		PORTD =(1<<1);
+		PORTC=number[b];
+		_delay_ms(5);
+
+		
+			PORTD=(0<<2);
+			PORTD =(1<<2);
+			PORTC=k[0];
+			_delay_ms(5);
+			
+				PORTD=(0<<3);
+				PORTD =(1<<3);
+				PORTC=k[1];
+				_delay_ms(5);
+ }
+ 
+ 
+// LED_7 THANH
+int main(void)
+{
+	DDRC=0xff;
+	DDRD=0xff;
+	unsigned int celsius;
+    while (1) 
+    {
+		ADC_Init();
+		celsius =(unsigned int)(ADC_Read(0)*0.488);
+		show(celsius);
+    }
+}
